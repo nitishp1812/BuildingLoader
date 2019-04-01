@@ -2,6 +2,7 @@ package databaseapi
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -176,5 +177,63 @@ func (handler *dbHandler) groundElevNotEqulaTo(writer http.ResponseWriter, reque
 		}
 
 		buildings = append(buildings, building)
+	}
+}
+
+func (handler *dbHandler) lessThanFilter(writer http.ResponseWriter, request *http.Request) {
+	params := mux.Vars(request)
+	param1 := params["param1"]
+	param2 := params["param2"]
+
+	isFirstParam, firstType := isDBField(param1)
+	isSecondParam, secondType := isDBField(param2)
+
+	if isFirstParam {
+		if firstType != "int" && firstType != "float" {
+			fmt.Fprintln(writer, "The given parameter does not support this type of comparison")
+			return
+		}
+	}
+
+	if isSecondParam {
+		if secondType != "int" && secondType != "float" {
+			fmt.Fprintln(writer, "The given parameter does not support this type of comparison")
+			return
+		}
+	}
+}
+
+func isDBField(parameter string) (bool, string) {
+	switch {
+	case parameter == "base_bbl":
+		return true, "string"
+	case parameter == "mpluto_bbl":
+		return true, "string"
+	case parameter == "shape_len":
+		return true, "float"
+	case parameter == "shape_area":
+		return true, "float"
+	case parameter == "geom_source":
+		return true, "string"
+	case parameter == "ground_elev":
+		return true, "int"
+	case parameter == "feat_code":
+		return true, "string"
+	case parameter == "height_roof":
+		return true, "float"
+	case parameter == "doitt_id":
+		return true, "string"
+	case parameter == "lststatus":
+		return true, "string"
+	case parameter == "lstmoddate":
+		return true, "int"
+	case parameter == "construct_year":
+		return true, "int"
+	case parameter == "bin":
+		return true, "string"
+	case parameter == "geom":
+		return true, "polygon"
+	default:
+		return false, ""
 	}
 }

@@ -30,13 +30,13 @@ func StartAPI(collectionName string) {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", handler.showAll).Methods("GET")
-	router.HandleFunc("/filter?{param1}={param2}", handler.showAll).Methods("GET")
-	router.HandleFunc("/filter?{param1}>{param2}", handler.showAll).Methods("GET")
-	router.HandleFunc("/filter?{param1}<{param2}", handler.showAll).Methods("GET")
-	router.HandleFunc("/filter?{param1}>={param2}", handler.showAll).Methods("GET")
-	router.HandleFunc("/filter?{param1}<={param2}", handler.showAll).Methods("GET")
-	router.HandleFunc("/filter?{param1}!={param2}", handler.showAll).Methods("GET")
-	fmt.Println("Now serving on http://localhost:5000/")
+	router.HandleFunc("/filter/{param1}={param2}", handler.showAll).Methods("GET")
+	router.HandleFunc("/filter/{param1}>{param2}", handler.showAll).Methods("GET")
+	router.HandleFunc("/filter/{param1}<{param2}", handler.lessThanFilter)
+	router.HandleFunc("/filter/{param1}>={param2}", handler.showAll).Methods("GET")
+	router.HandleFunc("/filter/{param1}<={param2}", handler.showAll).Methods("GET")
+	router.HandleFunc("/filter/{param1}!={param2}", handler.showAll).Methods("GET")
+	fmt.Println("The local server is now running on http://localhost:5000/")
 	if err := http.ListenAndServe(":5000", router); err != nil {
 		log.Fatal(err)
 	}
