@@ -2,9 +2,11 @@ package databaseapi
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/nitishp1812/buildingloader/etlpipeline"
 
@@ -19,188 +21,204 @@ type dbHandler struct {
 }
 
 func (handler *dbHandler) showAll(writer http.ResponseWriter, request *http.Request) {
-	var buildings []etlpipeline.DBBuilding
-
-	cursor, err := handler.collection.Find(context.Background(), bson.M{}, options.Find())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		var building etlpipeline.DBBuilding
-		if err := cursor.Decode(&building); err != nil {
-			log.Fatal(err)
-		}
-
-		buildings = append(buildings, building)
-	}
+	buildings := handler.getFilteredBuildings(&bson.D{{}})
 
 	generateOutput(writer, buildings)
 }
 
-func (handler *dbHandler) nameEqualTo(writer http.ResponseWriter, request *http.Request) {
-	params := mux.Vars(request)
-	name := params["name"]
-	filter := bson.M{"name": bson.M{"$eq": name}}
-
-	var buildings []etlpipeline.DBBuilding
-
-	cursor, err := handler.collection.Find(context.Background(), filter, options.Find())
+func (handler *dbHandler) equalToFilter(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.equalityFilter(writer, request, "$eq")
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		var building etlpipeline.DBBuilding
-		if err := cursor.Decode(&building); err != nil {
-			log.Fatal(err)
-		}
-
-		buildings = append(buildings, building)
-	}
-
-	generateOutput(writer, buildings)
-}
-
-func (handler *dbHandler) nameNotEqualTo(writer http.ResponseWriter, request *http.Request) {
-	params := mux.Vars(request)
-	name := params["name"]
-	filter := bson.M{"groundelev": bson.M{"$ne": name}}
-
-	var buildings []etlpipeline.DBBuilding
-
-	cursor, err := handler.collection.Find(context.Background(), filter, options.Find())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		var building etlpipeline.DBBuilding
-		if err := cursor.Decode(&building); err != nil {
-			log.Fatal(err)
-		}
-		buildings = append(buildings, building)
-	}
-
-	generateOutput(writer, buildings)
-}
-
-func (handler *dbHandler) groundElevGreaterThan(writer http.ResponseWriter, request *http.Request) {
-	params := mux.Vars(request)
-	groundElev := params["groundelev"]
-	filter := bson.M{"groundelev": bson.M{"$gt": groundElev}}
-
-	var buildings []etlpipeline.DBBuilding
-
-	cursor, err := handler.collection.Find(context.Background(), filter, options.Find())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		var building etlpipeline.DBBuilding
-		if err := cursor.Decode(&building); err != nil {
-			log.Fatal(err)
-		}
-
-		buildings = append(buildings, building)
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		generateOutput(writer, buildings)
 	}
 }
 
-func (handler *dbHandler) groundElevLessThan(writer http.ResponseWriter, request *http.Request) {
-	params := mux.Vars(request)
-	groundElev := params["groundelev"]
-	filter := bson.M{"groundelev": bson.M{"$lt": groundElev}}
-
-	var buildings []etlpipeline.DBBuilding
-
-	cursor, err := handler.collection.Find(context.Background(), filter, options.Find())
+func (handler *dbHandler) notEqualToFilter(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.equalityFilter(writer, request, "$ne")
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		var building etlpipeline.DBBuilding
-		if err := cursor.Decode(&building); err != nil {
-			log.Fatal(err)
-		}
-
-		buildings = append(buildings, building)
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		generateOutput(writer, buildings)
 	}
 }
 
-func (handler *dbHandler) groundElevEqualTo(writer http.ResponseWriter, request *http.Request) {
-	params := mux.Vars(request)
-	groundElev := params["groundelev"]
-	filter := bson.M{"groundelev": bson.M{"$eq": groundElev}}
-
-	var buildings []etlpipeline.DBBuilding
-
-	cursor, err := handler.collection.Find(context.Background(), filter, options.Find())
+func (handler *dbHandler) greaterThanFilter(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.floatComparisonFilter(writer, request, "$gt", "$lt")
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		var building etlpipeline.DBBuilding
-		if err := cursor.Decode(&building); err != nil {
-			log.Fatal(err)
-		}
-
-		buildings = append(buildings, building)
-	}
-}
-
-func (handler *dbHandler) groundElevNotEqulaTo(writer http.ResponseWriter, request *http.Request) {
-	params := mux.Vars(request)
-	groundElev := params["groundelev"]
-	filter := bson.M{"groundelev": bson.M{"$ne": groundElev}}
-
-	var buildings []etlpipeline.DBBuilding
-
-	cursor, err := handler.collection.Find(context.Background(), filter, options.Find())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cursor.Close(context.Background())
-
-	for cursor.Next(context.Background()) {
-		var building etlpipeline.DBBuilding
-		if err := cursor.Decode(&building); err != nil {
-			log.Fatal(err)
-		}
-
-		buildings = append(buildings, building)
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		generateOutput(writer, buildings)
 	}
 }
 
 func (handler *dbHandler) lessThanFilter(writer http.ResponseWriter, request *http.Request) {
-	params := mux.Vars(request)
-	param1 := params["param1"]
-	param2 := params["param2"]
+	buildings, err := handler.floatComparisonFilter(writer, request, "$lt", "$gt")
+	if err != nil {
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		generateOutput(writer, buildings)
+	}
+}
 
-	isFirstParam, firstType := isDBField(param1)
-	isSecondParam, secondType := isDBField(param2)
+func (handler *dbHandler) greaterThanEqualToFilter(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.floatComparisonFilter(writer, request, "$gte", "$lte")
+	if err != nil {
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		generateOutput(writer, buildings)
+	}
+}
 
-	if isFirstParam {
-		if firstType != "int" && firstType != "float" {
-			fmt.Fprintln(writer, "The given parameter does not support this type of comparison")
-			return
-		}
+func (handler *dbHandler) lessThanEqualToFilter(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.floatComparisonFilter(writer, request, "$lte", "$gte")
+	if err != nil {
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		generateOutput(writer, buildings)
+	}
+}
+
+func (handler *dbHandler) equalityFilter(writer http.ResponseWriter, request *http.Request,
+	comparison string) ([]etlpipeline.DBBuilding, error) {
+	parameters := mux.Vars(request)
+	leftParameter := parameters["left"]
+	rightParameter := parameters["right"]
+
+	isLeftDataField, leftParameterDataType := isDBField(leftParameter)
+	isRightDataField, rightParameterDataType := isDBField(rightParameter)
+
+	if leftParameterDataType == "polygon" || rightParameterDataType == "polygon" {
+		fmt.Fprintln(writer, "This field cannot be compared for equality")
+		return []etlpipeline.DBBuilding{}, errors.New("Invalid comparison")
 	}
 
-	if isSecondParam {
-		if secondType != "int" && secondType != "float" {
-			fmt.Fprintln(writer, "The given parameter does not support this type of comparison")
-			return
+	filter := bson.D{}
+	var err error
+
+	if isLeftDataField && isRightDataField {
+		if leftParameterDataType == rightParameterDataType {
+			filter = bson.D{{
+				"$expr", bson.D{{
+					comparison, bson.A{"$" + leftParameter, "$" + rightParameter},
+				}},
+			}}
+		} else {
+			fmt.Fprintln(writer, "The data fields are of different types and cannot be compared")
+			return []etlpipeline.DBBuilding{}, errors.New("Invalid comparison")
 		}
+	} else if isLeftDataField {
+		filter, err = getFilter(comparison, leftParameter, rightParameter, leftParameterDataType)
+		if err != nil {
+			fmt.Fprintln(writer, err.Error())
+			return []etlpipeline.DBBuilding{}, errors.New("Invalid type conversion attempt")
+		}
+	} else if isRightDataField {
+		filter, err = getFilter(comparison, rightParameter, leftParameter, rightParameterDataType)
+		if err != nil {
+			fmt.Fprintln(writer, err.Error())
+			return []etlpipeline.DBBuilding{}, errors.New("Invalid type conversion attempt")
+		}
+	} else {
+		fmt.Fprintln(writer, "The filter is not valid. One of the operands must be the name of a field in the dataset")
+		return []etlpipeline.DBBuilding{}, errors.New("No database field keyed")
 	}
+
+	buildings := handler.getFilteredBuildings(&filter)
+
+	return buildings, nil
+}
+
+func (handler *dbHandler) floatComparisonFilter(writer http.ResponseWriter, request *http.Request,
+	comparison string, invertedComparison string) ([]etlpipeline.DBBuilding, error) {
+	parameters := mux.Vars(request)
+	leftParameter := parameters["left"]
+	rightParameter := parameters["right"]
+
+	isLeftDataField, leftParameterDataType := isDBField(leftParameter)
+	isRightDataField, rightParameterDataType := isDBField(rightParameter)
+
+	if isLeftDataField && leftParameterDataType != "float" {
+		fmt.Fprintln(writer, "The given parameter does not support this type of comparison")
+		return []etlpipeline.DBBuilding{}, errors.New("Invalid comparison")
+	}
+
+	if isRightDataField && rightParameterDataType != "float" {
+		fmt.Fprintln(writer, "The given parameter does not support this type of comparison")
+		return []etlpipeline.DBBuilding{}, errors.New("Invalid comparison")
+	}
+
+	filter := bson.D{}
+	var err error
+
+	if isLeftDataField && isRightDataField {
+		filter = bson.D{{
+			"$expr", bson.D{{
+				comparison, bson.A{"$" + leftParameter, "$" + rightParameter},
+			}},
+		}}
+	} else if isLeftDataField {
+		filter, err = getFilter(comparison, leftParameter, rightParameter, leftParameterDataType)
+		if err != nil {
+			fmt.Fprintln(writer, err.Error())
+			return []etlpipeline.DBBuilding{}, errors.New("Invalid type conversion attempt")
+		}
+	} else if isRightDataField {
+		filter, err = getFilter(invertedComparison, rightParameter, leftParameter, rightParameterDataType)
+		if err != nil {
+			fmt.Fprintln(writer, err.Error())
+			return []etlpipeline.DBBuilding{}, errors.New("Invalid type conversion attempt")
+		}
+	} else {
+		fmt.Fprintln(writer, "The filter is not valid. One of the operands must be the name of a field in the dataset")
+		return []etlpipeline.DBBuilding{}, errors.New("No database field keyed")
+	}
+
+	buildings := handler.getFilteredBuildings(&filter)
+	return buildings, nil
+}
+
+func (handler *dbHandler) getFilteredBuildings(filter *bson.D) []etlpipeline.DBBuilding {
+	var buildings []etlpipeline.DBBuilding
+
+	cursor, err := handler.collection.Find(context.Background(), *filter, options.Find())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cursor.Close(context.Background())
+
+	for cursor.Next(context.Background()) {
+		var building etlpipeline.DBBuilding
+		if err := cursor.Decode(&building); err != nil {
+			log.Fatal(err)
+		}
+
+		buildings = append(buildings, building)
+	}
+
+	return buildings
+}
+
+func getFilter(operation string, parameter string, valueString string, dataType string) (filter bson.D, err error) {
+	if dataType == "float" {
+		value, err := strconv.ParseFloat(valueString, 64)
+		if err != nil {
+			return nil, errors.New("The given value could not be parsed to a decimal")
+		}
+		filter = bson.D{{
+			parameter, bson.D{{
+				operation, value,
+			}},
+		}}
+	} else {
+		filter = bson.D{{
+			parameter, bson.D{{
+				operation, valueString,
+			}},
+		}}
+	}
+	return
 }
 
 func isDBField(parameter string) (bool, string) {
@@ -216,7 +234,7 @@ func isDBField(parameter string) (bool, string) {
 	case parameter == "geom_source":
 		return true, "string"
 	case parameter == "ground_elev":
-		return true, "int"
+		return true, "float"
 	case parameter == "feat_code":
 		return true, "string"
 	case parameter == "height_roof":
@@ -226,9 +244,9 @@ func isDBField(parameter string) (bool, string) {
 	case parameter == "lststatus":
 		return true, "string"
 	case parameter == "lstmoddate":
-		return true, "int"
+		return true, "float"
 	case parameter == "construct_year":
-		return true, "int"
+		return true, "float"
 	case parameter == "bin":
 		return true, "string"
 	case parameter == "geom":
