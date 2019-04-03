@@ -2,6 +2,7 @@ package databaseapi
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/nitishp1812/buildingloader/etlpipeline"
@@ -18,7 +19,7 @@ func getSummary(buildings []etlpipeline.DBBuilding) string {
 	numberParameters := getNumberParameters(buildings)
 	stringParameters := getStringParameters(buildings)
 
-	numberParameterNames := []string{"Roof Height", "Shape Length", "Shape Area", "Ground Elevation", "Year constructed"}
+	numberParameterNames := []string{"Roof Height", "Shape Length", "Shape Area", "Ground Elevation", "Year Constructed"}
 	stringParameterNames := []string{"Geom Source", "Feature Code", "Last Status"}
 
 	for index, parameter := range numberParameters {
@@ -44,14 +45,51 @@ func getSummary(buildings []etlpipeline.DBBuilding) string {
 	return output
 }
 
-func getNumberSummary(values []float64, channel chan string, group *sync.WaitGroup, name string) {
+func getNumberSummary(values []float64, channel chan<- string, group *sync.WaitGroup, name string) {
 	defer group.Done()
 
 	numberSummary := ""
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	meanChannel := make(chan float64, 1)
+	medianChannel := make(chan float64, 1)
+
+	go getMean(values, meanChannel, &wg)
+	go getMedian(values, medianChannel, &wg)
+
+	wg.Wait()
+
+	close(meanChannel)
+	close(medianChannel)
+
+	mean := <-meanChannel
+	median := <-medianChannel
+
+	if name == "Year Constructed" {
+		numberSummary = fmt.Sprintf("The mean of the values in the field '%s' is %0.0f.\nThe median is %0.0f.\n",
+			name, mean, median)
+	} else {
+		numberSummary = fmt.Sprintf("The mean of the values in the field '%s' is %0.3f.\nThe median is %0.3f.\n",
+			name, mean, median)
+	}
+
+	if mean > median {
+		numberSummary = numberSummary + "Since the mean is greater than the median, we can infer that " +
+			"the values are skewed to the left\n\n\n"
+	} else if mean < median {
+		numberSummary = numberSummary + "Since the median is greater than the mean, we can infer that " +
+			"the values are skewed to the right\n\n\n"
+	} else {
+		numberSummary = numberSummary + "Since the mean is equal to the medina, we can infer that " +
+			"the values are normally distributed\n\n\n"
+	}
+
 	channel <- numberSummary
 }
 
-func getStringSummary(values []string, channel chan string, group *sync.WaitGroup, name string) {
+func getStringSummary(values []string, channel chan<- string, group *sync.WaitGroup, name string) {
 	defer group.Done()
 
 	stringSummary := ""
@@ -67,7 +105,7 @@ func getStringSummary(values []string, channel chan string, group *sync.WaitGrou
 		}
 	}
 
-	stringSummary = fmt.Sprintf("The parameter '%s' has the value '%s' in %d occurrences out of %d\n",
+	stringSummary = fmt.Sprintf("The parameter '%s' has the value '%s' in %d occurrences out of %d\n\n\n",
 		name, maxType, max, len(values))
 
 	channel <- stringSummary
@@ -127,6 +165,32 @@ func getStringParameters(buildings []etlpipeline.DBBuilding) [][]string {
 	return stringParams
 }
 
-func getMean(buildings []etlpipeline.DBBuilding) {
+func getMean(values []float64, channel chan float64, wg *sync.WaitGroup) {
+	defer wg.Done()
 
+	var average float64
+	average = 0
+	for _, value := range values {
+		average += value
+	}
+
+	average /= float64(len(values))
+
+	channel <- average
+}
+
+func getMedian(values []float64, channel chan float64, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	sort.Float64s(values)
+
+	var median float64
+
+	if (len(values) % 2) == 0 {
+		median = (values[(len(values)/2)] + values[(len(values)/2)+1]) / 2
+	} else {
+		median = values[(len(values)+1)/2]
+	}
+
+	channel <- median
 }
