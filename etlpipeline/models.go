@@ -21,7 +21,7 @@ type APIBuilding struct {
 	TheGeom       Multipolygon "json:\"the_geom\""
 }
 
-//DBBuilding represents the format which is used to store the data in the MongoDb database
+//DBBuilding represents the format which is used to store the data in the MongoDB database
 type DBBuilding struct {
 	GeomSource    string       "bson:\"geom_source\"      json:\"geom_source\""
 	MplutoBbl     string       "bson:\"mpluto_bbl\"       json:\"mpluto_bbl\""
