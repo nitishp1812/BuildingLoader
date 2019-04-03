@@ -2,6 +2,7 @@ package databaseapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -20,63 +21,137 @@ type dbHandler struct {
 	collection *mongo.Collection
 }
 
-func (handler *dbHandler) showAll(writer http.ResponseWriter, request *http.Request) {
+func (handler *dbHandler) showAllJSON(writer http.ResponseWriter, request *http.Request) {
 	buildings := handler.getFilteredBuildings(&bson.D{{}})
 
-	generateOutput(writer, buildings)
+	writer.Header().Set("Content-type", "application/json")
+	json.NewEncoder(writer).Encode(buildings)
 }
 
-func (handler *dbHandler) equalToFilter(writer http.ResponseWriter, request *http.Request) {
+func (handler *dbHandler) showAllSummary(writer http.ResponseWriter, request *http.Request) {
+	buildings := handler.getFilteredBuildings(&bson.D{{}})
+
+	writer.Header().Set("Content-type", "application/json")
+	json.NewEncoder(writer).Encode(buildings)
+}
+
+func (handler *dbHandler) equalToFilterJSON(writer http.ResponseWriter, request *http.Request) {
 	buildings, err := handler.equalityFilter(writer, request, "$eq")
 	if err != nil {
 		fmt.Fprintln(writer, err.Error())
 	} else {
-		generateOutput(writer, buildings)
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
 	}
 }
 
-func (handler *dbHandler) notEqualToFilter(writer http.ResponseWriter, request *http.Request) {
+func (handler *dbHandler) equalToFilterSummary(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.equalityFilter(writer, request, "$eq")
+	if err != nil {
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
+	}
+}
+
+func (handler *dbHandler) notEqualToFilterJSON(writer http.ResponseWriter, request *http.Request) {
 	buildings, err := handler.equalityFilter(writer, request, "$ne")
 	if err != nil {
 		fmt.Fprintln(writer, err.Error())
 	} else {
-		generateOutput(writer, buildings)
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
 	}
 }
 
-func (handler *dbHandler) greaterThanFilter(writer http.ResponseWriter, request *http.Request) {
+func (handler *dbHandler) notEqualToFilterSummary(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.equalityFilter(writer, request, "$ne")
+	if err != nil {
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
+	}
+}
+
+func (handler *dbHandler) greaterThanFilterJSON(writer http.ResponseWriter, request *http.Request) {
 	buildings, err := handler.floatComparisonFilter(writer, request, "$gt", "$lt")
 	if err != nil {
 		fmt.Fprintln(writer, err.Error())
 	} else {
-		generateOutput(writer, buildings)
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
 	}
 }
 
-func (handler *dbHandler) lessThanFilter(writer http.ResponseWriter, request *http.Request) {
+func (handler *dbHandler) greaterThanFilterSummary(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.floatComparisonFilter(writer, request, "$gt", "$lt")
+	if err != nil {
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
+	}
+}
+
+func (handler *dbHandler) lessThanFilterJSON(writer http.ResponseWriter, request *http.Request) {
 	buildings, err := handler.floatComparisonFilter(writer, request, "$lt", "$gt")
 	if err != nil {
 		fmt.Fprintln(writer, err.Error())
 	} else {
-		generateOutput(writer, buildings)
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
 	}
 }
 
-func (handler *dbHandler) greaterThanEqualToFilter(writer http.ResponseWriter, request *http.Request) {
+func (handler *dbHandler) lessThanFilterSummary(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.floatComparisonFilter(writer, request, "$lt", "$gt")
+	if err != nil {
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
+	}
+}
+
+func (handler *dbHandler) greaterThanEqualToFilterJSON(writer http.ResponseWriter, request *http.Request) {
 	buildings, err := handler.floatComparisonFilter(writer, request, "$gte", "$lte")
 	if err != nil {
 		fmt.Fprintln(writer, err.Error())
 	} else {
-		generateOutput(writer, buildings)
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
 	}
 }
 
-func (handler *dbHandler) lessThanEqualToFilter(writer http.ResponseWriter, request *http.Request) {
+func (handler *dbHandler) greaterThanEqualToFilterSummary(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.floatComparisonFilter(writer, request, "$gte", "$lte")
+	if err != nil {
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
+	}
+}
+
+func (handler *dbHandler) lessThanEqualToFilterJSON(writer http.ResponseWriter, request *http.Request) {
 	buildings, err := handler.floatComparisonFilter(writer, request, "$lte", "$gte")
 	if err != nil {
 		fmt.Fprintln(writer, err.Error())
 	} else {
-		generateOutput(writer, buildings)
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
+	}
+}
+
+func (handler *dbHandler) lessThanEqualToFilterSummary(writer http.ResponseWriter, request *http.Request) {
+	buildings, err := handler.floatComparisonFilter(writer, request, "$lte", "$gte")
+	if err != nil {
+		fmt.Fprintln(writer, err.Error())
+	} else {
+		writer.Header().Set("Content-type", "application/json")
+		json.NewEncoder(writer).Encode(buildings)
 	}
 }
 

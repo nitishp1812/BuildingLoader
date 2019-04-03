@@ -23,20 +23,20 @@ type APIBuilding struct {
 
 //DBBuilding represents the format which is used to store the data in the MongoDb database
 type DBBuilding struct {
-	GeomSource    string       "bson:\"geom_source\""
-	MplutoBbl     string       "bson:\"mpluto_bbl\""
-	BaseBbl       string       "bson:\"base_bbl\""
-	ShapeLen      float64      "bson:\"shape_len\""
-	ShapeArea     float64      "bson:\"shape_area\""
-	GroundElev    float64      "bson:\"ground_elev\""
-	FeatCode      string       "bson:\"feat_code\""
-	HeightRoof    float64      "bson:\"height_roof\""
-	DoittID       string       "bson:\"doitt_id\""
-	Lststatype    string       "bson:\"last_status_type\""
-	Lstmoddate    time.Time    "bson:\"last_mod_date\""
-	ConstructYear float64      "bson:\"construct_year\""
-	Bin           string       "bson:\"bin\""
-	Geom          Multipolygon "bson:\"geom\""
+	GeomSource    string       "bson:\"geom_source\"      json:\"geom_source\""
+	MplutoBbl     string       "bson:\"mpluto_bbl\"       json:\"mpluto_bbl\""
+	BaseBbl       string       "bson:\"base_bbl\"         json:\"base_bbl\""
+	ShapeLen      float64      "bson:\"shape_len\"        json:\"shape_len\""
+	ShapeArea     float64      "bson:\"shape_area\"       json:\"shape_area\""
+	GroundElev    float64      "bson:\"ground_elev\"      json:\"ground_elev\""
+	FeatCode      string       "bson:\"feat_code\"        json:\"feat_code\""
+	HeightRoof    float64      "bson:\"height_roof\"      json:\"height_roof\""
+	DoittID       string       "bson:\"doitt_id\"         json:\"doitt_id\""
+	Lststatype    string       "bson:\"last_status_type\" json:\"lststatype\""
+	Lstmoddate    time.Time    "bson:\"last_mod_date\"    json:\"lstmoddate\""
+	ConstructYear float64      "bson:\"construct_year\"   json:\"construct_year\""
+	Bin           string       "bson:\"bin\"              json:\"bin\""
+	Geom          Multipolygon "bson:\"geom\"             json:\"geom\""
 }
 
 //Multipolygon is the structure whixh represents the GeoJSON multipolygon structure

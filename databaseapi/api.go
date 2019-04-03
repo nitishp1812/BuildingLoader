@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/nitishp1812/buildingloader/etlpipeline"
-
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -29,19 +27,22 @@ func StartAPI(collectionName string) {
 	handler := dbHandler{collection}
 
 	router := mux.NewRouter()
-	router.HandleFunc("/", handler.showAll).Methods("GET")
-	router.HandleFunc("/filter/{left}={right}", handler.showAll).Methods("GET")
-	router.HandleFunc("/filter/{left}>{right}", handler.greaterThanFilter).Methods("GET")
-	router.HandleFunc("/filter/{left}<{right}", handler.lessThanFilter).Methods("GET")
-	router.HandleFunc("/filter/{left}>={right}", handler.greaterThanEqualToFilter).Methods("GET")
-	router.HandleFunc("/filter/{left}<={right}", handler.lessThanEqualToFilter).Methods("GET")
-	router.HandleFunc("/filter/{left}!={right}", handler.showAll).Methods("GET")
+	router.HandleFunc("/", handler.showAllJSON).Methods("GET")
+	router.HandleFunc("/summary/", handler.showAllSummary).Methods("GET")
+	router.HandleFunc("/filter/{left}={right}", handler.equalToFilterJSON).Methods("GET")
+	router.HandleFunc("/summary/filter/{left}={right}", handler.equalToFilterSummary).Methods("GET")
+	router.HandleFunc("/filter/{left}>{right}", handler.greaterThanFilterJSON).Methods("GET")
+	router.HandleFunc("/summary/filter/{left}>{right}", handler.greaterThanFilterSummary).Methods("GET")
+	router.HandleFunc("/filter/{left}<{right}", handler.lessThanFilterJSON).Methods("GET")
+	router.HandleFunc("/summary/filter/{left}<{right}", handler.lessThanFilterSummary).Methods("GET")
+	router.HandleFunc("/filter/{left}>={right}", handler.greaterThanEqualToFilterJSON).Methods("GET")
+	router.HandleFunc("/summary/filter/{left}>={right}", handler.greaterThanEqualToFilterSummary).Methods("GET")
+	router.HandleFunc("/filter/{left}<={right}", handler.lessThanEqualToFilterJSON).Methods("GET")
+	router.HandleFunc("/summary/filter/{left}<={right}", handler.lessThanEqualToFilterSummary).Methods("GET")
+	router.HandleFunc("/filter/{left}!={right}", handler.notEqualToFilterJSON).Methods("GET")
+	router.HandleFunc("/summary/filter/{left}!={right}", handler.notEqualToFilterSummary).Methods("GET")
 	fmt.Println("The local server is now running on http://localhost:5000/")
 	if err := http.ListenAndServe(":5000", router); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func generateOutput(writer http.ResponseWriter, buildings []etlpipeline.DBBuilding) {
-	fmt.Fprintln(writer, buildings)
 }
