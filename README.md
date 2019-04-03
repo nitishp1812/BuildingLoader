@@ -41,8 +41,7 @@ The comparison operators that are supported are:
 
 - = (check for equality)
 - <, > (check for greater than, less than)
-- != (check for inequality)
-- <=, >= (check for greater than\less than __or__ equality)
+- ! (check for inequality)
 
 ## Details
 
@@ -66,5 +65,5 @@ shape_len | The length of the shape | number
 There is another field in the database but this cannot be used to filter the output
 
 Field Name | Description
----------- | ---- | -----
+---------- | -----------
 last_mod_date | Feature last modified date

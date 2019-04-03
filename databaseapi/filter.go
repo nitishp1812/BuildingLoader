@@ -178,14 +178,10 @@ func isDBField(parameter string) (bool, string) {
 		return true, "string"
 	case parameter == "lststatus":
 		return true, "string"
-	case parameter == "lstmoddate":
-		return true, "float"
 	case parameter == "construct_year":
 		return true, "float"
 	case parameter == "bin":
 		return true, "string"
-	case parameter == "geom":
-		return true, "polygon"
 	default:
 		return false, ""
 	}
