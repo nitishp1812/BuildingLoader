@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,9 +16,40 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+//method to webscrape the URl for the data
+func getURL() string {
+	website := "https://data.cityofnewyork.us/Housing-Development/Building-Footprints/nqwf-w8eh"
+	response, err := http.Get(website)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+
+	// Get the response body as a string
+	byteData, err := ioutil.ReadAll(response.Body)
+	pageContent := string(byteData)
+
+	// Find the start index for the data link
+	urlStartIndex := strings.Index(pageContent, "\"https://data.cityofnewyork.us/resource/")
+	if urlStartIndex == -1 {
+		log.Fatal("No such element found")
+	}
+
+	//increase by 1 to ignore the starting quotes
+	urlStartIndex++
+
+	//the length of the string without the quotes is 53
+	urlEndIndex := urlStartIndex + 53
+
+	//get url by getting the byte elements between the two indexes
+	url := []byte(pageContent[urlStartIndex:urlEndIndex])
+
+	return string(url)
+}
+
 //Extract returns a slice of structs which are used to represent the data extracted from the New York City Building footprints dataset.
 func Extract() []APIBuilding {
-	buildingURL := "https://data.cityofnewyork.us/resource/hdxe-i756.json"
+	buildingURL := getURL()
 
 	//make the client to be used to call the API
 	client := http.Client{
