@@ -125,7 +125,7 @@ func Load(buildings []APIBuilding) string {
 		}
 	}
 
-	fmt.Printf("Data inserted into the MongoDb database 'nitishp1812buildingdb' in the collection '%s' \n", collectionName)
+	fmt.Printf("Data inserted into the MongoDb database 'nitishp1812buildingdb' in the collection '%s' hosted at 'mongodb://localhost:27017'\n", collectionName)
 
 	return collectionName
 }
